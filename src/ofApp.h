@@ -30,6 +30,16 @@ void gotMessage(ofMessage msg);
     ofImage image8;
     ofImage image9;
     ofImage image10;
+    ofImage image11;
+    ofImage image12;
+    ofImage image13;
+    ofImage image14;
+    ofImage image15;
+    ofImage image16;
+    ofImage image17;
+    ofImage image18;
+    ofImage image19;
+    ofImage image20;
 
 
 
