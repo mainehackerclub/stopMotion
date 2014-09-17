@@ -11,7 +11,7 @@ arround $150.
 
 Because there is a limited budget, $0, the volunteers at Maine Hacker Club donated salvaged equipment and their time. The old CRT was replaced with a vga LED panel. The buttons circuit board is a modified keyboard and modified mouse. The camera was a close circuit camera and is now a salvaged web cam donated by Derrick S.
 
-My original idea was to use a stopmotion program for Ubuntu called Stopmotion.  Eric L. thought that ImageMagic was the way to go and wrote a script for that. Because I had no expeerience with ImageMagic and I was more formilliar with how children behave at museums I knew there was a lot of work to be done.  
+My, Denis S, original idea was to use a stopmotion program for Ubuntu called Stopmotion.  Eric L. thought that ImageMagic was the way to go and wrote a script for that. Because I had no expeerience with ImageMagic and I was more formilliar with how children behave at museums I knew there was a lot of work to be done.  
 
 When demonstating what I wanted to do at a hacker meeting using Ubuntu Stopmotion, Jason M contributed to my understanding about the software programing. Alex G. commented that the Stopmotion is much more complete we need and that he could write a C++ program using openFrameworks.  This became the start. 
 
@@ -31,6 +31,9 @@ When I took it to the museum the computer started to misbehave. Eric and I met t
 Finially
 ========
 
-I loaded the software onto the restored laptop and was able to install it at the museum.
+I loaded the software onto the restored laptop and was able to install it at the museum.  The buttons are Capture, Delete Last, and Playback.  Save uses the "p" or "x" keys on keyboard in under the desk. The images and movies get saved with a date time tag. They are save on the computer and maybe to awsamazon if the code is correct.
+
+
+
 
 
