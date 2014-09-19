@@ -1,30 +1,32 @@
 #include "ofApp.h"
 
-
-//--------------------------------------------------------------
+//----------------------------------Sets image size ----------------------------
 void ofApp::setup()
 {
     camWidth = 320;	// try to grab at this size.
     camHeight = 240;
-    videoWidth = 950;
+    videoWidth = 900; //dms 950 worked on my computer but was too large for the MDM. Original was 800.
     videoHeight = (int)videoWidth*((float)camHeight/camWidth);
     frameRate = 5;
-    arraySize=20;//dms added per request from tp for more images.
+    arraySize=20;//dms added for more images and make it a variable
     //we can now get back a list of devices.
     vector<ofVideoDevice> devices = vidGrabber.listDevices();
 
     for(int i = 0; i < devices.size(); i++)
-    {        cout << devices[i].id << ": " << devices[i].deviceName;
+    {
+        cout << devices[i].id << ": " << devices[i].deviceName;
 
         if( devices[i].bAvailable )
-        {            cout << endl;
+        {
+            cout << endl;
         }
         else
-        {            cout << " - unavailable " << endl;
+        {
+            cout << " - unavailable " << endl;
         }
     }
 
-//vidGrabber.setDeviceID(0);
+    //vidGrabber.setDeviceID(0); //dms uncomment if you need to pick the camera.
     vidGrabber.setDesiredFrameRate(frameRate);
     vidGrabber.initGrabber(camWidth,camHeight);
 
@@ -42,7 +44,7 @@ void ofApp::setup()
     //ofEnableAlphaBlending();
 }
 
-//--------------------------------------------------------------
+//--------------------------------Gets the image from the camera (I think)------------------------------
 void ofApp::update()
 {
 
@@ -51,7 +53,7 @@ void ofApp::update()
     vidGrabber.update();
 }
 
-//--------------------------------------------------------------
+//------------------------------------Draws the icons and other videos--------------------------
 void ofApp::draw()
 {
 
@@ -74,7 +76,7 @@ void ofApp::draw()
 
     if(playback && videoArray.size()>0)
     {
-        //Draw big picture
+
         videoArray[playFrame].draw((ofGetWidth()-videoWidth)/2,20,videoWidth,videoHeight);
 
         //put frame around array image during playback
@@ -100,138 +102,134 @@ void ofApp::draw()
     }
 
 }
-
+//-----------------------------------------------keyPressed p or x to save---------------
 void ofApp::keyPressed(int key)
-{    // key 'p' or key 'x' is used to save the images and create a movie.
+{
+    // key 'p' or key 'x' is used to save the images and create a movie.
 
-    //TODO move this to be done by the mouse.  Maybe the mouse wheel or the move from the optical sensor.
+    //TODO: move this to be done by the mouse.  Maybe the mouse wheel or the move from the optical sensor.
 
     if (key == 'p' || key == 'x')
-    {//makes a folder and video name using time date tags when saving and exporting.
-        int year = ofGetYear();
-        int month= ofGetMonth();
+    {
+        //makes a folder and video name using time date tags when saving and exporting.
+
+
         int day = ofGetDay();
         int hour = ofGetHours();
         int minute = ofGetMinutes();
         char timeStamp[24];
-        sprintf(timeStamp,"%04d%02d%02d%02d%02d",year,month,day,hour,minute);
-
+        sprintf(timeStamp,"%02d%02d%02d",day,hour,minute);
+        char exportFile[100];
         ofImage img2Export;
+
+
         ofPixels pix2Export;
         for(int i = 0; i < videoArray.size(); i ++)
         {
             videoArray[i].readToPixels(pix2Export);
             img2Export.setFromPixels(pix2Export);
-            char exportFile[100];
 
 
 
-            sprintf(exportFile,"%s/image-%03d.png",timeStamp,i);//creates a folder and saves the images.
 
+
+            sprintf(exportFile,"image-%03d.png",i);//saves the images.//dms
             img2Export.saveImage(exportFile);
 
         }
 
         char videoExportCmd[256];
+        sprintf(videoExportCmd, "/usr/local/bin/ffmpeg -r %d -y -i ./data/image-%%03d.png -c:v mpeg4 -r %d -pix_fmt yuv420p ~/Desktop/data/v%s.mp4",frameRate,frameRate,timeStamp);
 
-        sprintf(videoExportCmd, "/usr/local/bin/ffmpeg -r %d -y -i data/%s/image-%%03d.png -c:v mpeg4 -r %d -pix_fmt yuv420p data/v%s.mp4",frameRate,timeStamp,frameRate,timeStamp);
-        //sprintf(videoExportCmd, "/usr/local/bin/ffmpeg -r %d -y -i data/20149101230/image-%%03d.png -c:v mpeg4 -r %d -pix_fmt yuv420p v%d%d%d%d%d.mp4",year,month,day,hour,minute,frameRate,frameRate,year,month,day,hour,minute);
 
-        system(videoExportCmd);//saves the images as a video.
 
-        //system("mkdir %d%d%d%d%d",year,month,day,hour,minute);//make timestamp dir for archive;
-        //system("cp *.png %d%d%d%d%d",year,month,day,hour,minute);
-        //system("rm *.png");//TODO move to timestamp);
-//system(aws configure);//if needed
-//aws s3 ls s3://stopmotion
-        char exportAWS[100];
-        char nameAWS[100];
-        sprintf(nameAWS,"v%s.mp4",timeStamp);
-       sprintf(exportAWS,"aws s3 cp data/%s s3://stopmotion/%s",nameAWS,nameAWS);
-       system(exportAWS);
+        system(videoExportCmd);//saves the images as a video. dms
+        char deleteOldImages[24];
+        sprintf(deleteOldImages, "rm data/*.png");//dms delete old images
+        system(deleteOldImages);
+
+
+                char exportAWS[100];
+                char nameAWS[100];
+                sprintf(nameAWS,"v%s.mp4",timeStamp);
+                sprintf(exportAWS,"aws s3 cp ~/Desktop/data/%s s3://stopmotion/%s",nameAWS,nameAWS);
+               system(exportAWS);
 
     }
 }
 
-
-//--------------------------------------------------------------
-void ofApp::keyReleased(int key){
-
-}
-
-//-----------------------------------------------keyPressed---------------
-void ofApp::mouseMoved(int x, int y ){
-int keyPressed(1);
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button){
-
-}
-
-//--------------------------------------------------------------
+//-------------mousePressed Left capture, Center playback Right delete-------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button)
-{//TODO make the overlay image the previous image.
+{
 
-//Right mouse key is used to delete the last image along the bottom of the screen.
-//TODO make the overlay image the previous image.
+    //Right mouse button
+
     if (button == 2 )
-    {        if (videoArray.size() >= 1)
-        {            videoArray.erase(videoArray.end());
-            //videoArray.size() = videoArray.size()-1;
-        }
+    {
+        if (videoArray.size() >= 1)
+        {
+            if (!playback)//dms had an error if all images were deleted during playback.
+            {
+                videoArray.erase(videoArray.end());
+                //videoArray.size() = videoArray.size()-1;
 
+            }
+        }
     }
-    //Left mouse key is used to add another image to the array.
+//--------------------------------------------------------------
+
+    //Left mouse button
     else if (button == 0)
-    {       //If the array has 10 images the first one will be deleted when an image is added.
-        if(videoArray.size() >= arraySize)
+    {
+
+        if (!playback)
         {
-            videoArray.erase(videoArray.begin());
-        }
-
-
-
-
-        int totalPixels = camWidth*camHeight*4;
-        delete[] videoCurrentBuffer;
-        delete[] videoOverlayBuffer;
-        videoCurrentBuffer = new unsigned char[totalPixels];
-        videoOverlayBuffer = new unsigned char[totalPixels];
-
-        unsigned char * pixels = vidGrabber.getPixels();
-        for (int i = 0; i < totalPixels; i++)
-        {
-            if(i%4 == 3)
+            if(videoArray.size() >= arraySize)
             {
-                videoOverlayBuffer[i] = 0x80;
-                videoCurrentBuffer[i] = 0xFF;
+
+                videoArray.erase(videoArray.begin());
             }
-            else
+
+
+            int totalPixels = camWidth*camHeight*4;
+            delete[] videoCurrentBuffer;
+            delete[] videoOverlayBuffer;
+            videoCurrentBuffer = new unsigned char[totalPixels];
+            videoOverlayBuffer = new unsigned char[totalPixels];
+
+            unsigned char * pixels = vidGrabber.getPixels();
+            for (int i = 0; i < totalPixels; i++)
             {
-                videoCurrentBuffer[i] = pixels[i-(i/4)];
-                videoOverlayBuffer[i] = pixels[i-(i/4)];
+                if(i%4 == 3)
+                {
+                    videoOverlayBuffer[i] = 0x80;
+                    videoCurrentBuffer[i] = 0xFF;
+                }
+                else
+                {
+                    videoCurrentBuffer[i] = pixels[i-(i/4)];
+                    videoOverlayBuffer[i] = pixels[i-(i/4)];
+                }
             }
+
+            delete videoOverlay;
+            videoOverlay = new ofTexture();
+            videoOverlay->allocate(camWidth,camHeight, GL_RGBA);
+            videoOverlay->loadData(videoOverlayBuffer, camWidth, camHeight, GL_RGBA);
+
+            delete videoCurrent;
+            videoCurrent = new ofTexture();
+            videoCurrent->allocate(camWidth,camHeight, GL_RGBA);
+            videoCurrent->loadData(videoCurrentBuffer, camWidth, camHeight, GL_RGBA);
+
+            videoArray.push_back(*videoCurrent);
         }
-
-        delete videoOverlay;
-        videoOverlay = new ofTexture();
-        videoOverlay->allocate(camWidth,camHeight, GL_RGBA);
-        videoOverlay->loadData(videoOverlayBuffer, camWidth, camHeight, GL_RGBA);
-
-        delete videoCurrent;
-        videoCurrent = new ofTexture();
-        videoCurrent->allocate(camWidth,camHeight, GL_RGBA);
-        videoCurrent->loadData(videoCurrentBuffer, camWidth, camHeight, GL_RGBA);
-
-        videoArray.push_back(*videoCurrent);
-
-        //center key is used for playback the images which are stored along the bottom of the screen.
     }
+
+    //Right mouse button
     else if (button == 1)
     {
         playback = !playback;
-
 
         playFrame = 0;
 
@@ -244,43 +242,9 @@ void ofApp::mousePressed(int x, int y, int button)
                 videoArray[i].readToPixels(pix2Export);
                 img2Export.setFromPixels(pix2Export);
 
-}
-}
-}
-}
-                /*                char exportFile[100];
-
-                sprintf(exportFile,"/home/denis/Desktop/stopMotion/export/images/image-%03d.png",i);
-
-                img2Export.saveImage(exportFile);
-
             }
-
-            char videoExportCmd[256];
-            int timestamp = ofGetUnixTime();
-            //TODO filename to date and time
-            sprintf(videoExportCmd, "/usr/local/bin/ffmpeg -r %d -y -i ./export/images/image-%%03d.png -c:v mpeg4 -r %d -pix_fmt yuv420p /home/denis/Desktop/stopMotion/export/videos/v%d.mp4",frameRate,frameRate,timestamp);
-
-            system(videoExportCmd);//saves the images as a video.
-
-            system("mv   ./export/images/*.png test");//TODO edit this to timestamp);
-
-             system("aws  s3 cp //home/denis/Desktop/stopMotion/export/videos/v1410101781.mp4  s3 //stopmotion/file.jpg");
-             }
+        }
     }
-*/
-
-//--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button){
 }
 
-//--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
-}
 
-//--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
-}
-//--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){
-}
